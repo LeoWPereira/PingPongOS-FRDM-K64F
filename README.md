@@ -46,5 +46,5 @@ E caso necessário, modifique o caminho dos arquivos
 
                                                             Para DEBUG
     
-  Pode-se utilizar o PUTTY no modo serial, configurando a porta de acordo com a sua conexão serial.
+  Pode-se utilizar o PUTTY (disponível também no projeto aqui no GIT) no modo serial, configurando a porta de acordo com a sua conexão serial.
   Normalmente é a porta COMx da entrada SERIAL.
