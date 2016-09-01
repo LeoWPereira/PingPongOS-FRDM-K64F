@@ -42,6 +42,7 @@ Once the board is plugged into the computer, you can see the MED drive in the wi
   Para isso vá em: Project/Properties/C/C++ Build/Settings
   - Cross ARM C Compiler/Includes
 
+E caso necessário, modifique o caminho dos arquivos
 
                                                             Para DEBUG
     
