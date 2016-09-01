@@ -1,4 +1,5 @@
                                                           PING-PONG OS
+                                              Leonardo W Pereira & Lucas Zimmermann Cordeiro 
                                                             
                                                             
                                                   FRDM-K64F utilizando o KDS
