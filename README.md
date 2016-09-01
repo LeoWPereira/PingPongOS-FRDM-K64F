@@ -8,6 +8,7 @@
   
   basta modificar o #define IDIOMA_ATUAL
  
+
                                           Install OpenSDAv2 Firmware on FRDM-K64F Board
 
                                                     (Escolha ou JLink ou MBED)
