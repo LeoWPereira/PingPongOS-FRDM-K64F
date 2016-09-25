@@ -1,4 +1,5 @@
                                                           PING-PONG OS
+                                          Leonardo W Pereira & Lucas Zimmermann Cordeiro 
                                                             
                                                             
                                                   FRDM-K64F utilizando o KDS
@@ -7,6 +8,7 @@
   
   basta modificar o #define IDIOMA_ATUAL
  
+
                                           Install OpenSDAv2 Firmware on FRDM-K64F Board
 
                                                     (Escolha ou JLink ou MBED)
@@ -36,9 +38,15 @@ Once the board is plugged into the computer, you can see the MED drive in the wi
 
 
 
+                                                            CUIDADOS
+  
+  Na hora de importar o projeto, é imprescindível verificar se todos os PATHs inclusos estão corretos de acordo com a sua máquina!
+  Para isso vá em: Project/Properties/C/C++ Build/Settings
+  - Cross ARM C Compiler/Includes
 
+E caso necessário, modifique o caminho dos arquivos
 
                                                             Para DEBUG
     
-  Pode-se utilizar o PUTTY no modo serial, configurando a porta de acordo com a sua conexão serial.
+  Pode-se utilizar o PUTTY (disponível também no projeto aqui no GIT) no modo serial, configurando a porta de acordo com a sua conexão serial.
   Normalmente é a porta COMx da entrada SERIAL.
