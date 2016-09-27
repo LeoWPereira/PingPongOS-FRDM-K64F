@@ -36,7 +36,7 @@ void task_init ()
     setvbuf (stdout, 0, _IONBF, 0) ;
 
     #ifdef DEBUG
-    printf ("task_init: inicializando no contexto %d\n", current->id);
+    printf ("task_init: inicializando no contexto %d\n", tarefaAtual->tid);
     #endif
 
     tarefaAtual->tid = id++;
@@ -83,7 +83,7 @@ int task_create (task_t * task, void (*start_routine)(void *),  void * arg)
 	task->next = NULL;
 
     #ifdef DEBUG
-    printf ("task_create: criou tarefa %d\n", task->id);
+    printf ("task_create: criou tarefa %d\n", task->tid);
     #endif
 
     return tarefaAtual->tid;
@@ -107,7 +107,7 @@ int task_switch (task_t *task)
         return -1;
 
     #ifdef DEBUG
-    printf ("task_switch: trocando contexto de %d para %d\n", aux->id, task->id) ;
+    printf ("task_switch: trocando contexto de %d para %d\n", aux->tid, task->tid) ;
     #endif
 
     swapcontext( &(aux->context), &(task->context) );
@@ -140,7 +140,7 @@ int task_id ()
     Esse identificador e único: nao existem duas tarefas com o mesmo ID.**/
 
     #ifdef DEBUG
-    printf ("task_id: id da tarefa atual: %d\n", current->id);
+    printf ("task_id: id da tarefa atual: %d\n", tarefaAtual->tid);
     #endif
 
     return tarefaAtual->tid;

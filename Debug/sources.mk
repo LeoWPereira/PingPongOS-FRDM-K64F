@@ -28,6 +28,7 @@ S_UPPER_DEPS :=
 SUBDIRS := \
 p02 \
 p00 \
+include \
 Utilities \
 Sources \
 Project_Settings/Startup_Code \

@@ -16,6 +16,9 @@
 
 task_t Ping, Pong ;
 
+int flag;
+int memPC = 0;
+
 void BodyPing (void * arg)
 {
    int i ;
@@ -84,7 +87,7 @@ int main(void)
 
     printf ("Main INICIO\n");
 
-   pingpong_init () ;
+    task_init();
 
    task_create (&Ping, BodyPing, "    Ping") ;
    task_create (&Pong, BodyPong, "        Pong") ;

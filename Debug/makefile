@@ -10,6 +10,7 @@ RM := rm -rf
 -include sources.mk
 -include p02/subdir.mk
 -include p00/subdir.mk
+-include include/subdir.mk
 -include Utilities/subdir.mk
 -include Sources/subdir.mk
 -include Project_Settings/Startup_Code/subdir.mk
