@@ -12,19 +12,22 @@
 
 #include "task.h"
 
+#include <config/config.h>
+#include IDIOMA_ATUAL
+
 #define STACKSIZE 32768
 
 task_t *tarefaAtual;
 task_t task_main;
+
 int id = 0;
 
 /**=================================================================================**/
 
 void task_init ()
 {
-    /** Esta funcao inicializa as estruturas necessarias para a execução das tarefas.
+    /** Esta funcao inicializa as estruturas necessarias para a execucao das tarefas.
     Por enquanto, contem apenas algumas inicializacoes de variaveis da biblioteca **/
-    /* desativa o buffer da saida padrao (stdout), usado pela função printf */
 
 	tarefaAtual = &task_main;
 
@@ -33,10 +36,10 @@ void task_init ()
 	tarefaAtual->next = NULL;
 	tarefaAtual->prev = NULL;
 
-    setvbuf (stdout, 0, _IONBF, 0) ;
+    setvbuf (stdout, 0, _IONBF, 0) ; // desativa o buffer da saida padrao (stdout), usado pela funcao printf
 
     #ifdef DEBUG
-    printf ("task_init: inicializando no contexto %d\n", tarefaAtual->tid);
+        printf ("%s %d\n", TASK_CONTEXT_INIT, tarefaAtual->tid);
     #endif
 
     tarefaAtual->tid = id++;
@@ -46,11 +49,12 @@ void task_init ()
 
 int task_create (task_t * task, void (*start_routine)(void *),  void * arg)
 {
-    /** Atenção: deve ser previsto um descritor de tarefa que aponte para o programa principal
-    (que exercerá a mesma função da variável ContextMain no programa pingpong.c) **/
-   /* task: estrutura que referencia a tarefa criada
-    start_routine: função que será executada pela tarefa
-    arg: parâmetro a passar para a tarefa que está sendo criada
+    /** Atencao: deve ser previsto um descritor de tarefa que aponte para o programa principal
+    (que exercera a mesma funcao da variavel ContextMain no programa task.c) **/
+   
+    /* task: estrutura que referencia a tarefa criada
+    start_routine: funcao que sera executada pela tarefa
+    arg: parametro a passar para a tarefa que esta sendo criada
     retorno: o ID da task ou valor negativo, se houver erro */
 
     char* stack;
@@ -68,7 +72,7 @@ int task_create (task_t * task, void (*start_routine)(void *),  void * arg)
     }
     else
     {
-        perror ("Erro na criação da pilha: ");
+        perror ("%s: ", ERR_STACK_INIT);
 
         return -1;
     }
@@ -83,7 +87,7 @@ int task_create (task_t * task, void (*start_routine)(void *),  void * arg)
 	task->next = NULL;
 
     #ifdef DEBUG
-    printf ("task_create: criou tarefa %d\n", task->tid);
+        printf ("%s %d\n", TASK_CREATE, task->tid);
     #endif
 
     return tarefaAtual->tid;
@@ -93,7 +97,7 @@ int task_create (task_t * task, void (*start_routine)(void *),  void * arg)
 
 int task_switch (task_t *task)
 {
-    /** Esta e a operação basica de troca de contexto, que encapsula a funcao swapcontext.
+    /** Esta e a operacao basica de troca de contexto, que encapsula a funcao swapcontext.
     Ela sera chamada sempre que for necessaria uma troca de contexto **/
     /* task: tarefa que ira assumir o processador
     retorno: valor negativo se houver erro, ou zero */
@@ -107,7 +111,7 @@ int task_switch (task_t *task)
         return -1;
 
     #ifdef DEBUG
-    printf ("task_switch: trocando contexto de %d para %d\n", aux->tid, task->tid) ;
+        printf ("%s de %d para %d\n", TASK_SWITCH, aux->tid, task->tid) ;
     #endif
 
     swapcontext( &(aux->context), &(task->context) );
@@ -125,7 +129,7 @@ void task_exit (int exit_code)
     (ignorar este parametro por enquanto, pois ele somente sera usado mais tarde) */
 
     #ifdef DEBUG
-    printf ("task_exit: voltando para main\n");
+        printf ("%s\n", TASK_EXIT);
     #endif
 
     task_switch(&task_main);
@@ -137,10 +141,10 @@ int task_id ()
 {
     /** retorno: Identificador numerico (ID) da tarefa corrente,
     que devera ser 0 para main, ou um valor positivo para as demais tarefas.
-    Esse identificador e único: nao existem duas tarefas com o mesmo ID.**/
+    Esse identificador e unico: nao existem duas tarefas com o mesmo ID.**/
 
     #ifdef DEBUG
-    printf ("task_id: id da tarefa atual: %d\n", tarefaAtual->tid);
+        printf ("%s: %d\n", TASK_ID, tarefaAtual->tid);
     #endif
 
     return tarefaAtual->tid;
