@@ -1,7 +1,10 @@
                                                           PING-PONG OS
                                           Leonardo W Pereira & Lucas Zimmermann Cordeiro 
                                                             
-                                                            
+                                Inicialmente, seguir este guia para configurar o KDS corretamente 
+                                
+https://www.element14.com/community/docs/DOC-69371/l/frdm-k64f-kinetis-design-studio-kds-software-dev-kit-sdk-tutorial-toggling-an-rgb-led-without-processor-expert
+                                
                                                   FRDM-K64F utilizando o KDS
   No arquivo config/config.h, é possível alterar a seguinte configuração do sistema:
   - Língua: - Português                  - Inglês                     - Alemão
