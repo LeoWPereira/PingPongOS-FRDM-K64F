@@ -7,39 +7,42 @@
 *         Lucas Zimmermann Cordeiro ()
 */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <config/includes.h>
 
-#include "task.h"
+#include <p00/queue.h>
 
 #define STACKSIZE 32768
 
-task_t *tarefaAtual;
-task_t task_main;
+task_t* tarefaAtual;
+task_t* tarefaQueue;
+
+task_t tarefa_main;
+task_t dispatcher;
+
 int id = 0;
 
 /**=================================================================================**/
 
 void task_init ()
 {
-    /** Esta funcao inicializa as estruturas necessarias para a execução das tarefas.
-    Por enquanto, contem apenas algumas inicializacoes de variaveis da biblioteca **/
-    /* desativa o buffer da saida padrao (stdout), usado pela função printf */
+	tarefaQueue = NULL;
 
-	tarefaAtual = &task_main;
+	tarefa_main.tid = id;
 
-	getcontext (&tarefaAtual->context);
+	getcontext(&tarefa_main.context);
 
-	tarefaAtual->next = NULL;
-	tarefaAtual->prev = NULL;
+	tarefaAtual = &tarefa_main;
 
-    setvbuf (stdout, 0, _IONBF, 0) ;
+	// desativa o buffer da saida padrao (stdout), usado pela função printf
+	setvbuf (stdout, 0, _IONBF, 0) ;
 
-    #ifdef DEBUG
-    printf ("task_init: inicializando no contexto %d\n", tarefaAtual->tid);
-    #endif
+	#ifdef DEBUG
+		printf ("task_init: inicializou a tarefa %d\n", tarefaAtual->tid) ;
+	#endif
 
-    tarefaAtual->tid = id++;
+	id++ ;
+
+	task_create(&dispatcher, dispatcher_body, NULL);
 }
 
 /**=================================================================================**/
@@ -55,10 +58,15 @@ int task_create (task_t * task, void (*start_routine)(void *),  void * arg)
 
     char* stack;
 
+    task_t *aux;
+
     getcontext(&task->context);
 
     stack = malloc (STACKSIZE);
 
+    //deve-se alocar um novo espaço na fila para esse contexto e atribuir
+	//seu endereço para contexto->uc_stack e definir um sucessor para o
+	//contexto e atribuir seu endereço para contexto->uc_link
     if (stack)
     {
         task->context.uc_stack.ss_sp = stack ;
@@ -73,20 +81,36 @@ int task_create (task_t * task, void (*start_routine)(void *),  void * arg)
         return -1;
     }
 
+    task->tid = id;
+
     makecontext (&(task->context),
     			(void*)(*start_routine),
 				1,
 				arg);
 
-    task->tid = id++;
-	task->prev = NULL;
-	task->next = NULL;
+    // na primeira execução desta função, que será o dispatcher que executará, não vai adicionar na fila, pois para adicionar deve entrar no else
+	if (task->tid > 1)
+	{
+		queue_append ((queue_t **) &tarefaQueue, (queue_t *) task);
 
-    #ifdef DEBUG
-    printf ("task_create: criou tarefa %d\n", task->tid);
-    #endif
+		// adiciona a tarefa (que não é o dispatcher) na fila de tarefas prontas
 
-    return tarefaAtual->tid;
+		task->prioridadeDinamica = 0;
+		task->prioridadeEstatica = 0;
+		// prioridade estatica e dinamica 0 na tarefa ao ser criada (default)
+	}
+
+	#ifdef DEBUG
+		printf ("task_create: criou tarefa %d\n", task->tid) ;
+
+		queue_print ("Elementos da fila:  ", (queue_t*) tarefaQueue, print_queue);
+
+		printf ("\n\n") ;
+	#endif
+
+	id++;
+
+	return tarefaAtual->tid;
 }
 
 /**=================================================================================**/
@@ -107,7 +131,7 @@ int task_switch (task_t *task)
         return -1;
 
     #ifdef DEBUG
-    printf ("task_switch: trocando contexto de %d para %d\n", aux->tid, task->tid) ;
+    	printf ("task_switch: trocando contexto de %d para %d\n", aux->tid, task->tid) ;
     #endif
 
     swapcontext( &(aux->context), &(task->context) );
@@ -124,11 +148,29 @@ void task_exit (int exit_code)
     /* exit_code : codigo de termino devolvido pela tarefa corrente
     (ignorar este parametro por enquanto, pois ele somente sera usado mais tarde) */
 
-    #ifdef DEBUG
-    printf ("task_exit: voltando para main\n");
-    #endif
+	#ifdef DEBUG
+		printf ("task_exit: encerrou a tarefa %d\n", tarefaAtual->tid) ;
+	#endif
 
-    task_switch(&task_main);
+	// quando dispatcher encerra, volta pra main
+	if (tarefaAtual->tid == 1)
+		task_switch (&tarefa_main);
+
+	// quando uma tarefa encerra, volta para o dispatcher
+	else
+	{
+		// remove da fila a tarefa que encerrou
+		queue_remove ((queue_t **) &tarefaQueue, (queue_t *) tarefaAtual) ;
+
+		#ifdef DEBUG
+			queue_print ("Elementos da fila:  ", (queue_t*) tarefaQueue, print_queue);
+
+			printf ("\n\n") ;
+		#endif
+
+		// volta pro dispatcher
+		task_switch(&dispatcher);
+	}
 }
 
 /**=================================================================================**/
@@ -140,8 +182,179 @@ int task_id ()
     Esse identificador e único: nao existem duas tarefas com o mesmo ID.**/
 
     #ifdef DEBUG
-    printf ("task_id: id da tarefa atual: %d\n", tarefaAtual->tid);
+    	printf ("task_id: id da tarefa atual: %d\n", tarefaAtual->tid);
     #endif
 
     return tarefaAtual->tid;
 }
+
+void task_yield ()
+{
+	task_t* auxTask; // auxiliar para identificar a task atual
+	task_t* auxQueue; // auxiliar para poder varrer a fila, se usasse o próprio taskQueue para varrer, perderia o primeiro elemento da fila
+
+	auxQueue = tarefaQueue;
+
+	int tamFila = queue_size ((queue_t *) tarefaQueue);
+
+	// busca o task atual na fila se nao for a main
+	if (tarefaAtual->tid > 1)
+	{
+		do
+		{
+			if (tarefaAtual->tid == auxQueue->tid)
+			{
+				auxTask = auxQueue;
+
+				tamFila = 0; 	// só para poder sair do do while
+			}
+
+			auxQueue = auxQueue->next;
+
+			tamFila--;
+
+		} while (tamFila > 0);
+
+		// se nao for a main, vai remover o task original que por enquanto é o primeiro da fila, e insere de volta na fila (sempre no final)
+		queue_remove ((queue_t **) &tarefaQueue, (queue_t *) tarefaAtual);
+		queue_append ((queue_t **) &tarefaQueue, (queue_t *) tarefaAtual);
+
+		auxQueue = tarefaQueue;
+
+		#ifdef DEBUG
+			queue_print ("Elementos da fila (remove/append):  \n", (queue_t*) tarefaQueue, print_queue);
+		#endif
+	}
+
+	// se for a main, nao vai estar na fila, por isso nao tá no if acima, entao o auxiliar do task só vai receber o taskAtual (que já é a main)
+	else
+		auxTask = tarefaAtual;
+
+	// quando chama task_yield, deve ir para o dispatcher sempre, então será o taskAtual
+	tarefaAtual = &dispatcher;
+
+	#ifdef DEBUG
+		printf ("task_yield: a tarefa %d liberou o processador\n\n\n", auxTask->tid) ;
+	#endif
+
+	// Precisa de aux pq tem que sempre atualizar o taskAtual, mas como você quer passar como parametro no swapcontext() o parametro atual, se passar o taskAtual vai acabar passando o proprio task, então precisa de um auxiliar que vai ser a tarefa original, antes de trocar de contexto.
+
+	if (swapcontext(&auxTask->context, &dispatcher.context) == -1)
+	{
+		perror("Erro na liberaçao do processador.\n");
+
+		return ;
+	}
+}
+
+task_t* scheduler (void* arg)
+{
+	int tam = queue_size ((queue_t *) tarefaQueue);
+
+	task_t* auxQueue;
+	task_t* auxTask;
+
+	auxQueue = tarefaQueue;
+	auxTask = tarefaQueue;
+
+	// varre a fila inteira e acha o menor valor de prioridade
+	do
+	{
+		// começa verificando a prioridade do primeiro da fila e vai indo até o final dela, procurando o menor valor e atribuindo a auxTask, quando chega ao final, auxTask terá o menor valor
+		if (auxQueue->prioridadeDinamica < auxTask->prioridadeDinamica)
+			auxTask = auxQueue;
+
+		auxQueue = auxQueue->next;
+
+	} while (auxQueue != tarefaQueue);
+
+	#ifdef DEBUG
+		printf ("Proxima tarefa:  %d\n", auxTask->tid);
+	#endif
+
+	auxQueue = tarefaQueue;
+
+	// aumentando prioridade de todas as tarefas
+	do
+	{
+		// não diminui prioridade da tarefa em questão (que é o auxTask)
+		if (auxQueue != auxTask)
+			auxQueue->prioridadeDinamica--;
+
+		else
+			auxQueue->prioridadeDinamica = auxQueue->prioridadeEstatica ;
+
+		#ifdef DEBUG
+			printf ("scheduler: Tarefa %d, prioridade %d\n", auxQueue->tid, auxQueue->prioridadeDinamica);
+		#endif
+
+		auxQueue = auxQueue->next;
+		tam--;
+
+	} while (tam > 0);
+
+	return auxTask;
+}
+
+void dispatcher_body (void* arg)
+{
+	task_t* proximo;
+
+	// se o numero de tarefas for maior que zero
+	while (queue_size ((queue_t *) tarefaQueue) > 0)
+	{
+		proximo = scheduler(NULL);
+
+		if(proximo)
+			task_switch(proximo); // transfere controle para a tarefa "next"
+	}
+
+	task_exit(0); // // encerra dispatcher e volta pra main
+}
+
+void print_queue (void * task)
+{
+	task_t *elem = task;
+
+	if (!elem)
+		return ;
+
+	if (elem->prev)
+		printf (" %d", elem->prev->tid) ;
+
+	else
+		printf ("*") ;
+
+	printf ("<%d>", elem->tid) ;
+
+	if (elem->next)
+		printf ("%d", elem->next->tid) ;
+
+	else
+		printf ("*") ;
+}
+
+int task_nice (int nice_level)
+{
+	int prioridade = tarefaAtual->prioridadeEstatica ;
+
+	if (((prioridade + nice_level) <= 20 ) && ((prioridade + nice_level) >= -20))
+	{
+		tarefaAtual->prioridadeEstatica = nice_level ;
+		tarefaAtual->prioridadeDinamica = nice_level ;
+
+		#ifdef DEBUG
+			printf ("task_nice: Tarefa %d, prioridade %d\n", tarefaAtual->tid, tarefaAtual->prioridadeDinamica) ;
+		#endif
+
+		return prioridade;
+	}
+
+	else
+	{
+		printf("A prioridade ficou fora do intervalo -20 a 20\n");
+
+		return 0 ;
+	}
+}
+

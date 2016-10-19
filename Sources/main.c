@@ -14,36 +14,21 @@
 #warning Este codigo foi planejado para ambientes UNIX (LInux, *BSD, MacOS). A compilacao e execucao em outros ambientes e responsabilidade do usuario.
 #endif
 
-task_t Ping, Pong ;
+task_t Pang, Peng, Ping, Pong, Pung;
 
 int flag;
 int memPC = 0;
 
-void BodyPing (void * arg)
+void Body (void * arg)
 {
    int i ;
-   char* name = (char *) arg ;
 
    for (i=0; i<4; i++)
    {
-      printf ("%s %d\n", name, i) ;
-      task_switch (&Pong);
+      printf ("%s %d\n", (char *) arg, i) ;
+      task_yield ();
    }
-   printf ("%s FIM\n", name) ;
-   task_exit (0) ;
-}
-
-void BodyPong (void * arg)
-{
-   int i ;
-   char* name = (char *) arg ;
-
-   for (i=0; i<4; i++)
-   {
-      printf ("%s %d\n", name, i) ;
-      task_switch (&Ping);
-   }
-   printf ("%s FIM\n", name) ;
+   printf ("%s FIM\n", (char *) arg) ;
    task_exit (0) ;
 }
 
@@ -89,15 +74,26 @@ int main(void)
 
     task_init();
 
-   task_create (&Ping, BodyPing, "    Ping") ;
-   task_create (&Pong, BodyPong, "        Pong") ;
+    task_create (&Pang, Body, "    Pang") ;
+	//task_setprio (&Pang, 0);
 
-   task_switch (&Ping) ;
-   task_switch (&Pong) ;
+	task_create (&Peng, Body, "        Peng");
+	//task_setprio (&Peng, 2);
 
-   printf ("Main FIM\n");
+	task_create (&Ping, Body, "            Ping");
+	//task_setprio (&Ping, 4);
 
-   exit (0);
+	task_create (&Pong, Body, "                Pong");
+	//task_setprio (&Pong, 6);
+
+	task_create (&Pung, Body, "                    Pung");
+	//task_setprio (&Pung, 8);
+
+	task_yield ();
+
+    printf ("Main FIM\n");
+
+    exit (0);
 }
 
 

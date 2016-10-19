@@ -50,3 +50,5 @@ E caso necessário, modifique o caminho dos arquivos
     
   Pode-se utilizar o PUTTY (disponível também no projeto aqui no GIT) no modo serial, configurando a porta de acordo com a sua conexão serial.
   Normalmente é a porta COMx da entrada SERIAL (com velocidade 115200).
+  
+  tamb�m pode configurar uma UART pelo pr�prio eclipse -> Link https://github.com/theolind/mahm3lib/wiki/Integrating-a-serial-output-window-with-Eclipse

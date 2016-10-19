@@ -15,14 +15,33 @@
  */
 
 // ucontext somente disponivel no LINUX
-#include <ucontext.h>
 
+#ifndef __TASK_H__
+#define __TASK_H__
+
+//////////////////////////////////////////////////////////////////
+// 							DEPENDENCIAS						//
+//////////////////////////////////////////////////////////////////
+
+#include <config/includes.h>
+
+//////////////////////////////////////////////////////////////////
+// 								STRUCTS							//
+//////////////////////////////////////////////////////////////////
 typedef struct task_t
 {
 	struct task_t *prev, *next;
+
 	int tid;
+	int prioridadeEstatica ;
+	int prioridadeDinamica ;
+
 	ucontext_t context;
 } task_t;
+
+//////////////////////////////////////////////////////////////////
+// 						PROTOTIPOS DE FUNCOES					//
+//////////////////////////////////////////////////////////////////
 
 void task_init ();
 
@@ -33,3 +52,15 @@ int task_switch (task_t *task);
 void task_exit (int exit_code);
 
 int task_id ();
+
+void task_yield();
+
+task_t* scheduler(void* arg);
+
+void dispatcher_body(void* arg);
+
+void print_queue (void * task);
+
+int task_nice (int nice_level);
+
+#endif

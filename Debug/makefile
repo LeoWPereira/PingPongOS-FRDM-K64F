@@ -59,7 +59,7 @@ all: PingPongOS.elf secondary-outputs
 PingPongOS.elf: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: Cross ARM C++ Linker'
-	arm-none-eabi-g++ -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -O0 -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections -Wall  -g3 -T "MK64FN1M0xxx12_flash.ld" -Xlinker --gc-sections -L"C:/Users/Leonardo/workspace.kds/PingPongOS/Project_Settings/Linker_Files" -Wl,-Map,"PingPongOS.map" -specs=nosys.specs -specs=nano.specs -Xlinker -z -Xlinker muldefs -o "PingPongOS.elf" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-none-eabi-g++ -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -O0 -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections -Wall  -g3 -T "MK64FN1M0xxx12_flash.ld" -Xlinker --gc-sections -L"C:\Users\leona\workspace.kds\PingPongOS\Project_Settings\Linker_Files" -Wl,-Map,"PingPongOS.map" --specs=nano.specs -specs=nosys.specs -Xlinker -z -Xlinker muldefs -o "PingPongOS.elf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
