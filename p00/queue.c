@@ -45,7 +45,7 @@ void queue_append (queue_t **queue, queue_t *elem)
     {
         if (elem) // Verifica a existÃªncia do elemento elem
         {
-            if (elem->prev || elem->next) // Se o elemento ja estiver em outra fila, aborta a operacao
+            if (elem->prev || elem->next) // Se o elemento ja¡ estiver em outra fila, aborta a operacao
                 printf("\n%s\n", ERR_ELEM_OUTRA_FILA);
             
             else
@@ -83,7 +83,7 @@ queue_t *queue_remove (queue_t **queue, queue_t *elem)
             {
                    if(esta_na_fila(*queue, elem)) // O elemento deve estar na fila
                    {
-                        if(queue_size(*queue) > TAM_MIN_FILA) // Evita acesso indevido eï¿½ memoria
+                        if(queue_size(*queue) > TAM_MIN_FILA) // Evita acesso indevido e  memoria
                         {
                                /*
                                * Se o elemento a ser deletado for igual ao primeiro,
