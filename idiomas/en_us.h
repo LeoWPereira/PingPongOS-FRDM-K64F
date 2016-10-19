@@ -25,3 +25,11 @@
 #define ERR_ELEM_NAO_PERTENCE_NA_FILA           "ERROR: Element does not belong to this queue"
 
 #define ERR_FILA_VAZIA_OU_NAO_EXISTE            "ERROR: The queue does not exist or it is empty"
+
+#define TASK_CONTEXT_INIT                       "task_init: initializing context"
+#define TASK_CREATE                             "task_create: task created"
+#define TASK_SWITCH                             "task_switch: switching context"
+#define TASK_EXIT                               "task_exit: returning to main"
+#define TASK_ID                                 "task_id: actual task's id"
+
+#define ERR_STACK_INIT                          "ERROR: Stack creation"
